@@ -1,49 +1,89 @@
 import os
-
-# Define project structure
-project_name = "stock_visualization_tool"
-os.makedirs(f"{project_name}/data", exist_ok=True)
-os.makedirs(f"{project_name}/plots", exist_ok=True)
-os.makedirs(f"{project_name}/utils", exist_ok=True)
-
-# main.py content
-main_py = """
-import yfinance as yf
+from datetime import datetime
 import pandas as pd
-import plotly.graph_objects as go
+import yfinance as yf
+import plotly.graph_objs as go
 
-def fetch_stock_data(ticker, start, end):
-    data = yf.download(ticker, start=start, end=end)
-    return data
+# Create necessary directories
+os.makedirs("data", exist_ok=True)
+os.makedirs("plots", exist_ok=True)
 
-def plot_stock_data(data, ticker):
+
+def fetch_stock_data(ticker: str, start: str, end: str) -> pd.DataFrame:
+    """
+    Fetch historical stock data from Yahoo Finance.
+
+    Parameters:
+        ticker (str): Stock ticker symbol.
+        start (str): Start date in YYYY-MM-DD format.
+        end (str): End date in YYYY-MM-DD format.
+
+    Returns:
+        pd.DataFrame: DataFrame containing historical stock prices.
+    """
+    try:
+        stock_data = yf.download(ticker, start=start, end=end)
+        if stock_data.empty:
+            print("No data found for the given ticker and date range.")
+        return stock_data
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+        return pd.DataFrame()
+
+
+def plot_stock_data(df: pd.DataFrame, ticker: str) -> None:
+    """
+    Plot closing prices of the stock using Plotly and save the plot.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame with stock data.
+        ticker (str): Ticker symbol used in the title.
+    """
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=data.index, y=data['Close'], mode='lines', name='Close Price'))
-    fig.update_layout(title=f'{ticker} Closing Prices',
-                      xaxis_title='Date',
-                      yaxis_title='Price (USD)')
+    fig.add_trace(go.Scatter(x=df.index, y=df['Close'], mode='lines', name='Close Price'))
+    fig.update_layout(title=f"{ticker.upper()} Closing Price Over Time",
+                      xaxis_title="Date",
+                      yaxis_title="Closing Price (USD)",
+                      template="plotly_dark")
+
+    fig.write_html(f"plots/{ticker}_plot.html")
+    print(f"Plot saved to plots/{ticker}_plot.html")
     fig.show()
 
+
+def save_data(df: pd.DataFrame, ticker: str, start: str, end: str) -> None:
+    """
+    Save stock data to CSV file.
+
+    Parameters:
+        df (pd.DataFrame): Stock data to save.
+        ticker (str): Stock ticker symbol.
+        start (str): Start date.
+        end (str): End date.
+    """
+    filename = f"data/{ticker}_{start}_{end}.csv"
+    df.to_csv(filename)
+    print(f"Data saved to {filename}")
+
+
+def main():
+    print("Welcome to the Stock Visualization Tool")
+    ticker = input("Enter stock ticker (e.g., AAPL): ").strip().upper()
+    start_date = input("Enter start date (YYYY-MM-DD): ").strip()
+    end_date = input("Enter end date (YYYY-MM-DD): ").strip()
+
+    try:
+        datetime.strptime(start_date, "%Y-%m-%d")
+        datetime.strptime(end_date, "%Y-%m-%d")
+    except ValueError:
+        print("Invalid date format. Please use YYYY-MM-DD.")
+        return
+
+    df = fetch_stock_data(ticker, start_date, end_date)
+    if not df.empty:
+        save_data(df, ticker, start_date, end_date)
+        plot_stock_data(df, ticker)
+
+
 if __name__ == "__main__":
-    ticker = input("Enter stock ticker (e.g., AAPL): ").upper()
-    start_date = input("Enter start date (YYYY-MM-DD): ")
-    end_date = input("Enter end date (YYYY-MM-DD): ")
-
-    stock_data = fetch_stock_data(ticker, start_date, end_date)
-    if not stock_data.empty:
-        plot_stock_data(stock_data, ticker)
-    else:
-        print("No data found for the given parameters.")
-"""
-
-# README.md content
-readme_md = f"""
-# Stock Visualization Tool
-
-A simple Python tool for fetching and visualizing stock data using Yahoo Finance.
-
-## Features
-- Fetches historical stock data using `yfinance`
-- Interactive time-series plots using `plotly`
-- CLI interface for user input
-
+    main()
