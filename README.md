@@ -17,23 +17,26 @@ Welcome to the Stock Visualization Tool – a Python-based application that allo
 
 ## 🛠 Installation
 
-1. Clone the repository:
-2. Create a virtual environment (optional but recommended):
-3. Install the required packaged pip install -r requirements.txt
-4. Usage python main.py
+1. Clone the repository.
+2. (Optional) Create and activate a virtual environment.
+3. Install the dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Run the tool from the command line:
+   ```bash
+   python main.py TICKER --start YYYY-MM-DD --end YYYY-MM-DD
+   ```
+   If you omit the arguments you will be prompted for them interactively.
 
-You will be prompted to enter:
+If run without command-line arguments you will be prompted for:
 
-A stock ticker symbol (e.g., AAPL)
+- A stock ticker symbol (e.g., `AAPL`)
+- A start date (e.g., `2020-01-01`)
+- An end date (e.g., `2023-12-31`)
 
-A start date (e.g., 2020-01-01)
+After gathering the information, the script will:
 
-An end date (e.g., 2023-12-31)
-
-The script will:
-
-Fetch the data
-
-Save it as a CSV in the data/ folder
-
-Generate an interactive plot and save it to the plots/ folder
+- Fetch the data
+- Save it as a CSV in the `data/` folder
+- Generate an interactive plot and save it to the `plots/` folder
